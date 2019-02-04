@@ -2,13 +2,14 @@
 #'
 #' Replaces numeric and factor columns NAs with user defined values
 #' 
-#' @param x A data frame. numeric and factor columns will be considered
-#' @param na.rm A logical indicating whether missing values should be removed
+#' @param df A data frame. numeric and factor columns will be considered
+#' @param numeric.v Numeric value, NAs will be replaced with. Default is 0.
+#' @param factor.v Factor value, NAs will be replaced with. Default is None.
 #' @return This function returns the initial \code{data.frame} with NAs replaced
 #'
 #' @export
 #' @examples
-#' df.preprocess.NAs(weather, 0, "None")
+#' preprocess.NAs(weather, 0, "None")
 #' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
 
 preprocess.NAs <-

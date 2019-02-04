@@ -2,6 +2,7 @@
 
 export(df.numeric.summary)
 export(numeric.summary)
+export(preprocess.NAs)
 import(dplyr)
 import(moments)
 import(purrr)

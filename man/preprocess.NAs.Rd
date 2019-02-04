@@ -7,9 +7,11 @@
 preprocess.NAs(df, numeric.v, factor.v = "None")
 }
 \arguments{
-\item{x}{A data frame. numeric and factor columns will be considered}
+\item{df}{A data frame. numeric and factor columns will be considered}
 
-\item{na.rm}{A logical indicating whether missing values should be removed}
+\item{numeric.v}{Numeric value, NAs will be replaced with. Default is 0.}
+
+\item{factor.v}{Factor value, NAs will be replaced with. Default is None.}
 }
 \value{
 This function returns the initial \code{data.frame} with NAs replaced
@@ -18,7 +20,7 @@ This function returns the initial \code{data.frame} with NAs replaced
 Replaces numeric and factor columns NAs with user defined values
 }
 \examples{
-df.preprocess.NAs(weather, 0, "None")
+preprocess.NAs(weather, 0, "None")
 }
 \author{
 Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}

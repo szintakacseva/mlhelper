@@ -1,0 +1,488 @@
+---
+title: "Developing R packages"
+output: html_notebook
+---
+
+```{r load packages , message = FALSE, warning=FALSE}
+if(!require(devtools)){install.packages("devtools")}
+if(!require(knitr)){install.packages("knitr")}
+if(!require(roxygen2)){install.packages("roxygen2")}
+if(!require(testthat)){install.packages("testthat")}
+
+if(!require(dplyr)){install.packages("dplyr")}
+if(!require(ggplot2)){install.packages("ggplot2")}
+if(!require(purrr)){install.packages("purrr")}
+if(!require(moments)){install.packages("moments")}
+if(!require(gridExtra)){install.packages("gridExtra")}
+
+```
+
+
+# ChAPtER 1 :: package management
+
+```{r create package dir}
+# Use the create function to set up your first package
+
+if (!file.exists("mlhelper")){
+   create("mlhelper")}
+
+# Take a look at the files and folders in your package
+dir("mlhelper")
+```
+
+
+```{r add function}
+# What is in the R directory before adding a function?
+dir("mlhelper/R")
+
+# Use the dump() function to write the numeric_summary function
+#dump("numeric.summary", file = "mlhelper/R/numeric.summary.R")
+#dump("df.numeric.summary", file = "mlhelper/R/df.numeric.summary.R")
+#dump("preprocess.NAs", file = "mlhelper/R/preprocess.NAs.R")
+#dump("rmse", file = "mlhelper/R/rmse.R")
+#dump("plot.histogram", file = "mlhelper/R/plot.histogram.R")
+#dump("plot.density", file = "mlhelper/R/plot.density.R")
+#dump("do.plots", file = "mlhelper/R/do.plots.R")
+
+
+# Verify that the file is in the correct directory
+dir("mlhelper/R")
+```
+
+
+```{r data}
+weather = data.frame(Day = c(1, 2, 3, 4, 5, 6, 7),
+                    
+                      Temp = c(22, 19, 18, 24, NA, 21, 14),
+                      Weather = c("Snow", "Snow", "Sun", NA , "Rain", "Snow", "Rain"))
+
+#' Random Weather Data
+#'
+#' A dataset containing randomly generated weather data.
+#'
+#' @format A data frame of 7 rows and 3 columns
+#' \describe{
+#'  \item{Day}{Numeric values giving day of the week, 1 = Monday, 7 = Sunday}
+#'  \item{Temp}{Numeric values giving temperature in degrees Celsius}
+#'  \item{Weather}{Character values describing the weather on that day}
+#' }
+#' @source Randomly generated data
+```
+
+```{r add data}
+# What is in the package at the moment?
+dir("mlhelper")
+
+# Add the weather data
+use_data(weather, pkg = "mlhelper", overwrite = TRUE)
+
+# What directories do you now have in your package now?
+dir("mlhelper")
+
+```
+
+```{r data doc}
+## Save it as weather.R file in R dir
+
+#' Random Weather Data
+#'
+#' A dataset containing randomly generated weather data.
+#'
+#' @format A data frame of 7 rows and 3 columns
+#' \describe{
+#'  \item{Day}{Numeric values giving day of the week, 1 = Monday, 7 = Sunday}
+#'  \item{Temp}{Numeric values giving temperature in degrees Celsius}
+#'  \item{Weather}{Character values describing the weather on that day}
+#' }
+#' @source Randomly generated data
+```
+
+
+
+```{r package}
+## SAVE IT as mlhelper.R in R dir
+
+#' mlhelper: Helper functions for EDA and ml
+#'
+#' Collection of helper functions for EDA and ml
+#'
+#' @docType package
+#' @name mlhelper
+"_PACKAGE"
+
+
+```
+
+```{r package documentation}
+# Generate package documentation
+document("mlhelper")
+
+# Examine the contents of the man directory
+dir("mlhelper/man")
+
+# View the documentation for the numeric.summary function
+help("preprocess.NAs")
+
+# View the documentation for the weather dataset
+help("weather")
+
+# View the documentation for the weather dataset
+help("rmse")
+
+```
+
+```{r check}
+
+check("mlhelper")
+
+```
+
+
+
+```{r add dependencies}
+# Add libraries as a dependency to the DESCRIPTION file
+use_package("dplyr", pkg = "mlhelper")
+use_package("purrr", pkg = "mlhelper")
+use_package("moments", pkg = "mlhelper")
+use_package("ggplot2", pkg = "mlhelper")
+use_package("gridExtra", pkg = "mlhelper")
+
+
+```
+
+```{r build the package}
+
+# Build the package
+build("mlhelper")
+
+# Examine the contents of the current directory
+dir()
+
+
+```
+
+
+
+# CHAPTER 2 :: functions
+
+```{r numeric.summary}
+# create numeric summary for a df$column in df format
+numeric.summary <- function(x, na.rm) {
+  
+  # Include an error if x is not numeric
+  if(!is.numeric(x)){
+    stop("Data must be numeric")
+  }
+  
+  # Create data frame
+  data.frame( MIN = min(x, na.rm = na.rm),
+              Q1 = quantile(x, 0.25, na.rm = na.rm),
+              MEAN = round(mean(x, na.rm = na.rm),2),
+              MEDIAN = round(median(x, na.rm = na.rm),2),
+              Q3 = quantile(x, 0.75, na.rm = na.rm), 
+              IQR = IQR(x, na.rm = na.rm),
+              SD = round(sd(x, na.rm = na.rm),2),
+              MAX = max(x, na.rm = na.rm),
+              SKEWNESS = round(skewness(x, na.rm = na.rm),2))%>%
+    mutate(SKEW = ifelse(MEAN > MEDIAN, "RIGHT", "LEFT"))
+}
+```
+
+```{r doc numeric summary}
+#' Numeric Summaries
+#'
+#' Summarises numeric data and returns a data frame containing the basic summary values.
+#'
+#' @param x a numeric vector containing the values to summarize.
+#' @param na.rm A logical indicating whether missing values should be removed.
+#' @import dplyr
+#' @import moments
+#' @return This function returns a \code{data.frame} including columns:
+#' \itemize{
+#'  \item min
+#'  \item q1
+#'  \item mean
+#'  \item median
+#'  \item q3
+#'  \item iqr
+#'  \item stdev
+#'  \item max
+#'  \item skewness
+#'  \item skew
+#' }
+#' @export
+#' @examples
+#' numeric.summary(iris$Sepal.Length)
+#' numeric.summary(airquality$Wind, na.rm = FALSE)
+#' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
+#' @seealso \code{\link[base]{summary}}
+
+```
+
+
+```{r run numeric.summary}
+numeric.summary(iris$Sepal.Length, na.rm=TRUE)
+```
+
+```{r df.numeric.summary}
+
+df.numeric.summary <- function(x, na.rm = TRUE){
+  
+  df.numeric <- select_if(x, .predicate = is.numeric) 
+  
+  map_df(df.numeric, .f = numeric.summary, na.rm = TRUE, .id = "ID")
+  
+}
+
+```
+
+```{r doc df.numeric.summary}
+#' Summary of Numeric Columns
+#'
+#' Generate specific summaries of numeric columns in a data frame
+#' 
+#' @param x A data frame. Non-numeric columns will be removed
+#' @param na.rm A logical indicating whether missing values should be removed
+#' @import purrr
+#' @import dplyr
+#' @return This function returns a \code{data.frame} including columns:
+#'  \itemize{
+#'  \item id
+#'  \item min
+#'  \item q1
+#'  \item mean
+#'  \item median
+#'  \item q3
+#'  \item iqr
+#'  \item stdev
+#'  \item max
+#'  \item skewness
+#'  \item skew
+#' }
+#' @export
+#' @examples
+#' df.numeric.summary(iris)
+#' df.numeric.summary(airquality, na.rm = FALSE)
+#' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
+#' @seealso \link[base]{summary}
+
+```
+
+```{r run df summary}
+df.numeric.summary(iris, na.rm = TRUE)
+```
+
+
+
+```{r preprocessNAs}
+preprocess.NAs <- function(df, numeric.v, factor.v = "None"){
+  
+# get factor and numeric features
+numeric_var <- names(df)[which(sapply(df, is.numeric))]
+
+# get factor features
+factor_var <- names(df)[which(sapply(df, is.factor))]
+
+# df with numeric features
+df_num <-  df %>%
+  select(numeric_var)
+
+#for numeric features replace missing values with 0
+for (feature in colnames(df_num)) {
+    df[[feature]][is.na(df_num[feature])] <- numeric.v
+}
+
+ # df with factor features
+df_fac <-  df %>%
+  select(factor_var)
+
+#add the new level "None" and replace missing values with "None" for factors in a df
+for (feature in colnames(df_fac)) {
+    levels(df[[feature]]) = c(levels(df_fac[[feature]]), factor.v)
+    df[[feature]][is.na(df_fac[[feature]])] <- factor.v
+}
+return(df)
+}
+
+```
+
+```{r doc preprocessNAs}
+
+#' Handling missing values in a df
+#'
+#' Replaces numeric and factor columns NAs with user defined values
+#' 
+#' @param df A data frame. numeric and factor columns will be considered
+#' @param numeric.v Numeric value, NAs will be replaced with. Default is 0.
+#' @param factor.v Factor value, NAs will be replaced with. Default is None.
+#' @return This function returns the initial \code{data.frame} with NAs replaced
+#'
+#' @export
+#' @examples
+#' preprocess.NAs(weather, 0, "None")
+#' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
+
+```
+
+
+```{r run preprocess.NAs}
+preprocess.NAs(weather, 0, "None")
+```
+
+```{r rmse function}
+# RMSE  - Calcuates the Root Mean Squared Error
+# 
+# Params: actual     - actual values
+#         predicted  - predicted values 
+# Return: rmse       - Root Mean Squared Error
+
+rmse <- function(actual, predicted) {
+  
+  return(sqrt( mean((actual - predicted)^2)))
+}
+```
+
+```{r plot.histogram}
+#histograms for all the factors in a df
+plot.histogram <- function(df, feature) {
+  data <- data.frame(feature=df[[feature]])
+  plot <- ggplot(data=data, aes(x=factor(feature))) + stat_count() +
+    labs( title = "", x = (colnames(df)[feature]), y = "")+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 5),
+          axis.title.x = element_text(size = 8))
+  return (plot)
+}
+
+```
+
+```{r doc plot.histogram}
+#' Histogram of a factor feature in a df
+#'
+#' Plots a basic histogram for a factor feature in a given df
+#' 
+#' @param df A data frame. numeric and factor columns will be considered
+#' @param factor.v Factor feature
+#' @return Histogram of the feature
+#'
+#' @export
+#' @examples
+#' plot.histogram(weather, "Weather")
+#' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
+#' 
+
+```
+
+```{r run plot.histograms}
+plot.histogram(weather, "Weather")
+
+```
+
+```{r plot.density}
+# density plots for all the numeric features in a df
+plot.density <- function(df, feature){
+  data <- data.frame(feature=df[[feature]])
+  p <- ggplot(data= data) + geom_line(aes(x = feature), stat = 'density', size = 1,alpha = 1.0) +
+   # scale_y_continuous(labels = scales::comma)+
+  labs( title = "", x = paste0((colnames(df)[feature]), '\n', 'Skewness:',round(skewness(df[[feature]], na.rm = TRUE), 2)), y = "")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
+          axis.title.x = element_text(size = 8))
+  
+  return(p)
+   
+}
+
+```
+
+```{r doc plot.density}
+
+#' Density plot of a numeric feature in a df
+#'
+#' Plots a density function of a numeric feature in a given df
+#' 
+#' @param df A data frame. Numeric columns will be considered
+#' @param numeric.v Numeric feature as a string
+#' @return Density plot of the numeric feature
+#'
+#' @export
+#' @examples
+#' plot.density(weather, "Temp")
+#' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
+#' 
+
+```
+
+```{r run plot.density}
+plot.density(iris, "Sepal.Length")
+
+```
+
+```{r do.plots}
+# list of plots in a grid
+do.plots <- function(df, funct, nr, ncols=3) {
+  p.list <- list()
+  for (i in nr) {
+    p <- funct(df=df, feature=i)
+    p.list <- c(p.list, list(p))
+  }
+  do.call("grid.arrange", c(p.list, ncol=ncols))
+}
+```
+
+```{r doc do.plots}
+
+#' List of plots in a grid arrangement
+#'
+#' Grid of plots depending on the function (\code{plot.histogram} or \code{plot.density}) for a given df
+#' 
+#' @param df A data frame.
+#' @param funct function name. Tested for(\code{plot.histogram} or \code{plot.density}).
+#' @param nr A range number of plots.
+#' @param ncols Number of columns of the grid arrangement.
+
+#' @return List of plots in a grid arrangement
+#'
+#' @export
+#' @examples
+#' do.plots(iris, func=plot.density, nr=1:4, ncols=3)
+#' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
+#' 
+
+```
+
+```{r run do.plots}
+do.plots(iris, func=plot.histogram, nr=1:4, ncols=3)
+
+```
+
+
+# CHAPTER 3 :: loading the package
+
+```{r load from local}
+library(mlhelper, lib.loc = "e:/RProjects/packages")
+```
+
+```{r invoke functions}
+mlhelper::plot.histogram(weather, "Weather")
+```
+
+```{r install from github}
+
+install_github("szintakacseva/mlhelper")
+
+```
+
+```{r load helperr}
+library(mlhelper)
+
+```
+
+```{r test it from github}
+
+
+# test it
+df.numeric.summary(iris)
+preprocess.NAs(weather, 0, "None")
+
+```
+
+

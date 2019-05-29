@@ -22,6 +22,7 @@ for example,
 * `plot.histogram` - Histogram of a factor feature in a df
 * `preprocess.NAs` - Handling missing values in a df
 * `rmse` - Calcuates the Root Mean Squared Error
+* `multiplot` - multiple plots in a specified layout for ggplot objects
 
 ### Data sets:
 * `weather`

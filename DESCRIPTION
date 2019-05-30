@@ -12,5 +12,4 @@ Imports: dplyr,
     purrr,
     moments,
     ggplot2,
-    gridExtra,
-	grid
+    gridExtra

@@ -3,33 +3,99 @@ title: "Developing R packages"
 output: html_notebook
 ---
 
+*Steps*  
+      
+1. If no package dir exists go to `E:/RProjects`. Place this .rmd in that dir.
+2. Create the package (if not exists), use `create_package()`. This creates the NAMESPACE and the project.       
+3. If the package exists run the Rproject from the project directory (`E:/RProjects/mlhelper`)  
+4. Copy functions as R files into the R directory, together with docs. Also copy the data docs and package doc as R file into the R directory.       
+5. Add dependencies as `use_package()`
+6. Add data as `use_data()`
+8 Create documentation (`man`) using `document()`
+9 Upload new `NAMESPACE`, `DESCRIPTION`, `man`, `R`, `data` and this file into the `Github` 
+
+IMPORTANT ISSUES
+In the `DESCRIPTION` I had to modify manualy the package name to `mlhelper`
+
 ```{r load packages , message = FALSE, warning=FALSE}
 if(!require(devtools)){install.packages("devtools")}
 if(!require(knitr)){install.packages("knitr")}
 if(!require(roxygen2)){install.packages("roxygen2")}
 if(!require(testthat)){install.packages("testthat")}
+if(!require(rmarkdown)){install.packages("rmarkdown")}
+if(!require(usethis)){install.packages("usethis")}
 
+# dependencies to add  
 if(!require(dplyr)){install.packages("dplyr")}
 if(!require(ggplot2)){install.packages("ggplot2")}
 if(!require(purrr)){install.packages("purrr")}
 if(!require(moments)){install.packages("moments")}
 if(!require(gridExtra)){install.packages("gridExtra")}
+if(!require(grid)){install.packages("grid")}
+
+```
+
+## CHAPTER 1 - Package mamagement
+```{r chapter 0}
+# run just first time
+path <- file.path("mlhelper")
+create_package(path)
+```
+
+```{r 0.1}
+proj_get()
 
 ```
 
 
-# ChAPtER 1 :: package management
+```{r 0.2}
+weather = data.frame(Day = c(1, 2, 3, 4, 5, 6, 7),
+                    
+                      Temp = c(22, 19, 18, 24, NA, 21, 14),
+                      Weather = c("Snow", "Snow", "Sun", NA , "Rain", "Snow", "Rain"))
 
-```{r create package dir}
-# Use the create function to set up your first package
-
-if (!file.exists("mlhelper")){
-   create("mlhelper")}
-
-# Take a look at the files and folders in your package
-dir("mlhelper")
+#' Random Weather Data
+#'
+#' A dataset containing randomly generated weather data.
+#'
+#' @format A data frame of 7 rows and 3 columns
+#' \describe{
+#'  \item{Day}{Numeric values giving day of the week, 1 = Monday, 7 = Sunday}
+#'  \item{Temp}{Numeric values giving temperature in degrees Celsius}
+#'  \item{Weather}{Character values describing the weather on that day}
+#' }
+#' @source Randomly generated data
 ```
 
+```{r 0.3}
+# Add the weather data
+use_data(weather, overwrite = TRUE)
+
+```
+
+```{r 0.4}
+# Add libraries as a dependency to the DESCRIPTION file
+use_package("dplyr")
+use_package("purrr")
+use_package("moments")
+use_package("ggplot2")
+use_package("gridExtra")
+use_package("grid")
+
+
+```
+
+```{r create documentation}
+# creates man and updates NAMESPACE
+#use_roxygen_md()
+document()
+
+# check man
+help("multiplot")
+```
+
+
+# ChAPTER 1 :: package management
 
 ```{r add function}
 # What is in the R directory before adding a function?
@@ -50,53 +116,6 @@ dir("mlhelper/R")
 ```
 
 
-```{r data}
-weather = data.frame(Day = c(1, 2, 3, 4, 5, 6, 7),
-                    
-                      Temp = c(22, 19, 18, 24, NA, 21, 14),
-                      Weather = c("Snow", "Snow", "Sun", NA , "Rain", "Snow", "Rain"))
-
-#' Random Weather Data
-#'
-#' A dataset containing randomly generated weather data.
-#'
-#' @format A data frame of 7 rows and 3 columns
-#' \describe{
-#'  \item{Day}{Numeric values giving day of the week, 1 = Monday, 7 = Sunday}
-#'  \item{Temp}{Numeric values giving temperature in degrees Celsius}
-#'  \item{Weather}{Character values describing the weather on that day}
-#' }
-#' @source Randomly generated data
-```
-
-```{r add data}
-# What is in the package at the moment?
-dir("mlhelper")
-
-# Add the weather data
-use_data(weather, pkg = "mlhelper", overwrite = TRUE)
-
-# What directories do you now have in your package now?
-dir("mlhelper")
-
-```
-
-```{r data doc}
-## Save it as weather.R file in R dir
-
-#' Random Weather Data
-#'
-#' A dataset containing randomly generated weather data.
-#'
-#' @format A data frame of 7 rows and 3 columns
-#' \describe{
-#'  \item{Day}{Numeric values giving day of the week, 1 = Monday, 7 = Sunday}
-#'  \item{Temp}{Numeric values giving temperature in degrees Celsius}
-#'  \item{Weather}{Character values describing the weather on that day}
-#' }
-#' @source Randomly generated data
-```
-
 
 
 ```{r package}
@@ -113,23 +132,6 @@ dir("mlhelper")
 
 ```
 
-```{r package documentation}
-# Generate package documentation
-document("mlhelper")
-
-# Examine the contents of the man directory
-dir("mlhelper/man")
-
-# View the documentation for the numeric.summary function
-help("preprocess.NAs")
-
-# View the documentation for the weather dataset
-help("weather")
-
-# View the documentation for the weather dataset
-help("rmse")
-
-```
 
 ```{r check}
 
@@ -137,18 +139,6 @@ check("mlhelper")
 
 ```
 
-
-
-```{r add dependencies}
-# Add libraries as a dependency to the DESCRIPTION file
-use_package("dplyr", pkg = "mlhelper")
-use_package("purrr", pkg = "mlhelper")
-use_package("moments", pkg = "mlhelper")
-use_package("ggplot2", pkg = "mlhelper")
-use_package("gridExtra", pkg = "mlhelper")
-
-
-```
 
 ```{r build the package}
 
@@ -164,6 +154,60 @@ dir()
 
 
 # CHAPTER 2 :: functions
+
+```{r multiplot}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
+
+
+```{r doc multiplot}
+#' Multiple plot function
+#'
+#' ggplot objects can be passed in directly(...), or as a list of ggplot objects
+#'
+#' @param ... ggplot objects
+#' @param cols number of columns
+#' @import grid
+#' @return This function returns the plots in a specified layout
+#' @export
+#' @examples
+#' multiplot(p1, p2, cols=1)
+#' @author Eva Szin Takacs, \email{szin.takacs.eva@gmail.com}
+#' @seealso \code{\link[base]{gridExtra}}
+
+```
 
 ```{r numeric.summary}
 # create numeric summary for a df$column in df format
@@ -458,7 +502,7 @@ do.plots(iris, func=plot.histogram, nr=1:4, ncols=3)
 # CHAPTER 3 :: loading the package
 
 ```{r load from local}
-library(mlhelper, lib.loc = "e:/RProjects/packages")
+library(mlhelper, lib.loc = "e:/RProjects")
 ```
 
 ```{r invoke functions}
@@ -482,6 +526,16 @@ library(mlhelper)
 # test it
 df.numeric.summary(iris)
 preprocess.NAs(weather, 0, "None")
+
+```
+
+
+```{r run multiplot}
+p3 <- ggplot(mtcars, aes(x = mpg)) +
+      geom_histogram()
+p4 <- ggplot(mtcars, aes(x = cyl)) +
+      geom_histogram()
+multiplot(p3,p4, cols=1)
 
 ```
 
